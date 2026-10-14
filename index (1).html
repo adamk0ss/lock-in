@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LOCK IN – test reakce</title>
+<meta name="description" content="Pět kol. Jeden průměr. Jak rychlý doopravdy jsi? Otestuj svou reakci.">
+<meta name="theme-color" content="#050605">
+<meta property="og:title" content="LOCK IN">
+<meta property="og:description" content="Pět kol. Jeden průměr. Jak rychlý doopravdy jsi?">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23050605'/%3E%3Ccircle cx='50' cy='50' r='22' fill='%2339ff6a'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#050605;--panel:#0d100d;--line:#1b221b;--text:#f1f5f1;--dim:#8a968a;
+  --green:#39ff6a;--red:#ff3b4e;--warn:#ffb020;
+  --font:"SF Pro Display","Segoe UI Variable Display",Inter,Roboto,system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation}
+:focus-visible{outline:3px solid var(--green);outline-offset:3px}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:20px 20px 24px;overflow-y:auto}
+.screen[hidden]{display:none}
+.wrap{width:100%;max-width:420px;margin:auto;display:flex;flex-direction:column;gap:14px}
+.top{position:absolute;top:calc(12px + env(safe-area-inset-top));right:14px;left:14px;display:flex;justify-content:space-between;z-index:5;pointer-events:none}
+.top>*{pointer-events:auto}
+.icon{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center;font-size:18px;transition:border-color .2s}
+.icon:hover{border-color:var(--green)}
+
+/* home */
+.logo{font-weight:900;font-size:clamp(64px,22vw,104px);line-height:.86;letter-spacing:-.05em;text-align:left}
+.logo span{display:block;color:var(--green);text-shadow:0 0 40px rgba(57,255,106,.35)}
+.tag{color:var(--dim);font-size:17px;line-height:1.4;max-width:30ch}
+.btn{width:100%;padding:18px;border-radius:18px;font-weight:700;font-size:18px;letter-spacing:.01em;transition:transform .12s,box-shadow .2s,background .2s}
+.btn:active{transform:scale(.97)}
+.btn.main{background:var(--green);color:#03120a;box-shadow:0 0 0 0 rgba(57,255,106,.5);animation:pulse 2.4s infinite}
+.btn.alt{background:var(--panel);border:1px solid var(--line)}
+.btn.alt:hover{border-color:var(--green)}
+.btn small{display:block;font-weight:500;font-size:13px;color:var(--dim);margin-top:2px}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(57,255,106,.45)}70%,100%{box-shadow:0 0 0 18px rgba(57,255,106,0)}}
+
+/* game */
+#game{padding:0}
+#pad{position:absolute;inset:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px;transition:background .08s;touch-action:manipulation;color:#0a0a0a}
+#pad.wait{background:var(--red)}
+#pad.go{background:var(--green)}
+#pad.done{background:var(--bg);color:var(--text)}
+#pad.fail{background:var(--bg);color:var(--warn)}
+#pad .big{font-size:clamp(48px,16vw,96px);font-weight:900;letter-spacing:-.04em;line-height:1}
+#pad .sub{font-size:18px;font-weight:600;opacity:.8}
+#pad.done .big{color:var(--green)}
+#hud{position:absolute;top:calc(14px + env(safe-area-inset-top));left:0;right:0;display:flex;justify-content:center;gap:8px;z-index:3;pointer-events:none}
+.dot{width:10px;height:10px;border-radius:50%;background:rgba(0,0,0,.25);border:2px solid rgba(0,0,0,.45);transition:.2s}
+.dot.on{background:var(--green);border-color:var(--green)}
+.dot.cur{transform:scale(1.35)}
+#pad.done~#hud .dot,#pad.fail~#hud .dot{border-color:var(--line);background:var(--line)}
+#pad.done~#hud .dot.on,#pad.fail~#hud .dot.on{background:var(--green);border-color:var(--green)}
+#quit{position:absolute;left:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:4;padding:12px 18px;border-radius:99px;background:rgba(0,0,0,.35);color:#fff;font-size:15px;font-weight:600}
+
+/* result card */
+.card{width:100%;aspect-ratio:4/5;max-height:62vh;border-radius:28px;padding:26px;display:flex;flex-direction:column;justify-content:space-between;background:radial-gradient(120% 80% at 80% 0%,rgba(57,255,106,.16),transparent 60%),var(--panel);border:1px solid #1f2b1f;position:relative;overflow:hidden}
+.card .brand{font-weight:900;letter-spacing:-.03em;font-size:22px}
+.card .brand b{color:var(--green)}
+.card .meta{color:var(--dim);font-size:14px;margin-top:2px}
+.card .avg{font-size:clamp(72px,26vw,116px);font-weight:900;letter-spacing:-.06em;line-height:.9;color:var(--green);text-shadow:0 0 36px rgba(57,255,106,.3)}
+.card .avg small{font-size:.28em;letter-spacing:0;margin-left:4px;color:var(--text);font-weight:600}
+.card .rank{font-size:22px;font-weight:700;margin-top:6px}
+.bars{display:flex;align-items:flex-end;gap:8px;height:64px}
+.bars div{flex:1;background:var(--green);border-radius:6px 6px 2px 2px;opacity:.85;min-height:6px;position:relative;transform-origin:bottom;animation:grow .6s cubic-bezier(.2,.8,.2,1) both}
+.bars div.best{opacity:1;box-shadow:0 0 16px rgba(57,255,106,.5)}
+.bars span{position:absolute;top:-17px;left:0;right:0;text-align:center;font-size:11px;color:var(--dim);font-weight:600}
+@keyframes grow{from{transform:scaleY(0)}}
+.foot{display:flex;justify-content:space-between;color:var(--dim);font-size:13px}
+.foot b{color:var(--text)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--green);color:#03120a;font-weight:700;padding:12px 20px;border-radius:99px;opacity:0;pointer-events:none;transition:.25s;z-index:20}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* stats */
+h2{font-size:30px;font-weight:800;letter-spacing:-.03em}
+.tabs{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:4px}
+.tabs button{flex:1;padding:10px;border-radius:10px;font-weight:600;color:var(--dim)}
+.tabs button[aria-selected=true]{background:var(--green);color:#03120a}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+.stat b{display:block;font-size:30px;font-weight:800;letter-spacing:-.03em;color:var(--green)}
+.stat span{color:var(--dim);font-size:14px}
+.list{list-style:none;padding:0;display:flex;flex-direction:column;gap:8px}
+.list li{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.list li em{font-style:normal;color:var(--dim);width:22px}
+.list li strong{font-size:20px;color:var(--green);flex:1}
+.list li span{color:var(--dim);font-size:13px}
+.note{border:1px dashed #2a352a;border-radius:14px;padding:14px;color:var(--dim);font-size:14px;line-height:1.45}
+.empty{color:var(--dim);text-align:center;padding:24px 0}
+
+/* modal */
+dialog{border:1px solid var(--line);border-radius:24px;background:var(--panel);color:var(--text);padding:26px;width:min(92vw,380px);margin:auto}
+dialog::backdrop{background:rgba(0,0,0,.8)}
+dialog h2{margin-bottom:14px}
+dialog ol{padding-left:20px;display:flex;flex-direction:column;gap:10px;color:var(--dim);line-height:1.45;margin-bottom:20px}
+dialog ol b{color:var(--text)}
+
+@media (min-width:700px){.wrap{max-width:440px}.card{max-height:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<main>
+<!-- HOME -->
+<section class="screen" id="home">
+  <div class="top">
+    <button class="icon" id="help" aria-label="Jak hrát">?</button>
+    <button class="icon" id="mute" aria-label="Ztlumit zvuk" aria-pressed="false">🔊</button>
+  </div>
+  <div class="wrap">
+    <h1 class="logo">LOCK<span>IN</span></h1>
+    <p class="tag">Pět kol. Klepni ve chvíli, kdy se obrazovka zbarví zeleně. Zjisti, jak rychlý doopravdy jsi.</p>
+    <button class="btn main" id="startBtn">START</button>
+    <button class="btn alt" id="dailyBtn">Denní výzva<small id="dailyInfo">Dnes stejné prodlevy pro všechny</small></button>
+    <div class="row">
+      <button class="btn alt" id="statsBtn">Statistiky</button>
+      <button class="btn alt" id="lbBtn">Žebříček</button>
+    </div>
+  </div>
+</section>
+
+<!-- GAME -->
+<section class="screen" id="game" hidden>
+  <button id="pad" class="wait" aria-live="assertive"></button>
+  <div id="hud" aria-hidden="true"></div>
+  <button id="quit">Ukončit</button>
+</section>
+
+<!-- RESULT -->
+<section class="screen" id="result" hidden>
+  <div class="wrap">
+    <div class="card" id="card">
+      <div>
+        <div class="brand">LOCK <b>IN</b></div>
+        <div class="meta" id="cMeta"></div>
+      </div>
+      <div>
+        <div class="avg"><span id="cAvg">0</span><small>ms</small></div>
+        <div class="rank" id="cRank"></div>
+      </div>
+      <div class="bars" id="cBars"></div>
+      <div class="foot"><span>Nejlepší <b id="cBest"></b></span><span id="cFs"></span></div>
+    </div>
+    <div class="row">
+      <button class="btn main" id="again" style="animation:none">Znovu</button>
+      <button class="btn alt" id="share">Sdílet</button>
+    </div>
+    <button class="btn alt" id="toHome" style="padding:14px">Domů</button>
+  </div>
+</section>
+
+<!-- STATS / LEADERBOARD -->
+<section class="screen" id="stats" hidden>
+  <div class="wrap" style="margin-top:56px">
+    <h2>Tvoje čísla</h2>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tabStats" aria-selected="true">Statistiky</button>
+      <button role="tab" id="tabLb" aria-selected="false">Žebříček</button>
+    </div>
+    <div id="statsPane"></div>
+    <div id="lbPane" hidden></div>
+    <button class="btn alt" id="statsBack" style="padding:14px">Zpět</button>
+  </div>
+</section>
+</main>
+
+<dialog id="tut">
+  <h2>Jak hrát</h2>
+  <ol>
+    <li><b>Čekej</b>, dokud je obrazovka červená. Na nic neklepej.</li>
+    <li><b>Klepni kamkoli</b> ve chvíli, kdy zezelená. Funguje i mezerník nebo Enter.</li>
+    <li>Když klepneš příliš brzy, je to <b>předčasný start</b>. Kolo se opakuje.</li>
+    <li>Z pěti kol se spočítá průměr. Sdílej ho a vyzvi kamaráda.</li>
+  </ol>
+  <button class="btn main" id="tutOk" style="animation:none">Rozumím</button>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(()=>{
+"use strict";
+const $=s=>document.getElementById(s);
+const ROUNDS=5, MIN=1500, MAX=5000, KEY="lockin.v1";
+
+/* ---------- storage ---------- */
+let db={runs:[],daily:{},seen:false,muted:false};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)db=Object.assign(db,s)}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}};
+
+/* ---------- helpers ---------- */
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+function seeded(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}
+  let a=h>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const ranks=[[190,"Nadlidský"],[230,"V zóně"],[280,"Bystrý"],[340,"Rozjíždíš se"],[1e9,"Ještě spíš"]];
+const rankOf=ms=>ranks.find(r=>ms<r[0])[1];
+const avgOf=a=>Math.round(a.reduce((x,y)=>x+y,0)/a.length);
+const show=id=>{["home","game","result","stats"].forEach(s=>$(s).hidden=s!==id)};
+let toastT;const toast=m=>{const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2200)};
+
+/* ---------- sound ---------- */
+let ac;
+function beep(f,d,type="sine",v=.15){
+  if(db.muted)return;
+  try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume();
+    const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;
+    g.gain.setValueAtTime(v,ac.currentTime);g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+d);
+    o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}
+}
+function paintMute(){const b=$("mute");b.textContent=db.muted?"🔇":"🔊";b.setAttribute("aria-pressed",db.muted);b.setAttribute("aria-label",db.muted?"Zapnout zvuk":"Ztlumit zvuk")}
+$("mute").onclick=()=>{db.muted=!db.muted;save();paintMute();beep(660,.08)};
+paintMute();
+
+/* ---------- game ---------- */
+const pad=$("pad");
+let G=null, lastTap=0;
+const hud=$("hud");
+
+function drawHud(){
+  hud.innerHTML="";
+  for(let i=0;i<ROUNDS;i++){const d=document.createElement("i");d.className="dot"+(i<G.times.length?" on":"")+(i===G.times.length?" cur":"");hud.appendChild(d)}
+}
+function setPad(state,big,sub){
+  pad.className=state;
+  pad.innerHTML=`<span class="big">${big}</span><span class="sub">${sub||""}</span>`;
+}
+function startRun(mode){
+  const rnd=mode==="daily"?seeded("lockin-"+today()):Math.random;
+  G={mode,times:[],fs:0,phase:"idle",t:null,t0:0,delays:Array.from({length:ROUNDS},()=>Math.round(MIN+rnd()*(MAX-MIN)))};
+  show("game");nextRound();
+}
+function nextRound(){
+  G.phase="wait";G.t0=0;drawHud();
+  setPad("wait","Počkej na zelenou",`Kolo ${G.times.length+1} z ${ROUNDS}`);
+  const delay=G.mode==="daily"?G.delays[G.times.length]:Math.round(MIN+Math.random()*(MAX-MIN));
+  G.t=setTimeout(()=>{
+    G.phase="go";setPad("go","KLEPNI!","");beep(880,.12,"square",.1);
+    requestAnimationFrame(()=>{G.t0=performance.now()});
+  },delay);
+}
+function tap(){
+  if(!G)return;
+  const now=performance.now();
+  if(now-lastTap<180)return;           // swallow double taps / ghost clicks
+  if(G.phase==="wait"){
+    lastTap=now;clearTimeout(G.t);G.phase="between";G.fs++;
+    setPad("fail","Příliš brzy","Předčasný start. Kolo se opakuje.");beep(150,.3,"sawtooth",.12);
+    G.t=setTimeout(nextRound,1400);
+  }else if(G.phase==="go"&&G.t0){
+    lastTap=now;const ms=Math.max(1,Math.round(now-G.t0));
+    G.times.push(ms);G.phase="between";drawHud();
+    setPad("done",ms+" ms",rankOf(ms));beep(520,.1);
+    G.t=setTimeout(()=>G.times.length>=ROUNDS?finish():nextRound(),1000);
+  }
+}
+pad.addEventListener("pointerdown",e=>{e.preventDefault();tap()});
+pad.addEventListener("click",e=>{if(e.detail===0)tap()});   // keyboard activation
+pad.addEventListener("contextmenu",e=>e.preventDefault());
+$("quit").onclick=()=>{if(G){clearTimeout(G.t);G=null}goHome()};
+
+/* ---------- finish / result ---------- */
+let last=null;
+function finish(){
+  const t=G.times, avg=avgOf(t), best=Math.min(...t);
+  last={avg,best,times:t.slice(),fs:G.fs,mode:G.mode,date:today(),ts:Date.now()};
+  const newPB=db.runs.length===0||avg<Math.min(...db.runs.map(r=>r.avg));
+  db.runs.push(last);if(db.runs.length>100)db.runs.shift();
+  if(G.mode==="daily"&&(!db.daily[last.date]||avg<db.daily[last.date]))db.daily[last.date]=avg;
+  save();clearTimeout(G.t);G=null;
+  $("cMeta").textContent=(last.mode==="daily"?"Denní výzva · ":"")+new Date().toLocaleDateString("cs-CZ",{day:"numeric",month:"short",year:"numeric"});
+  $("cAvg").textContent=avg;$("cRank").textContent=rankOf(avg)+(newPB?" · nový rekord":"");
+  $("cBest").textContent=best+" ms";
+  $("cFs").textContent=last.fs?last.fs+" "+(last.fs===1?"předčasný start":last.fs<5?"předčasné starty":"předčasných startů"):"Čistý běh";
+  const mx=Math.max(...t),bars=$("cBars");bars.innerHTML="";
+  t.forEach((v,i)=>{const d=document.createElement("div");d.style.height=Math.max(12,v/mx*100)+"%";d.style.animationDelay=i*70+"ms";
+    if(v===best)d.className="best";d.innerHTML=`<span>${v}</span>`;bars.appendChild(d)});
+  show("result");beep(660,.1);setTimeout(()=>beep(990,.18),110);
+}
+$("again").onclick=()=>startRun(last&&last.mode||"normal");
+$("toHome").onclick=goHome;
+
+/* ---------- share ---------- */
+$("share").onclick=async()=>{
+  if(!last)return;
+  const url=location.href.split("#")[0];
+  const text=`LOCK IN: průměr ${last.avg} ms (${rankOf(last.avg)}). Nejlepší kolo ${last.best} ms. Porazíš to?`;
+  if(navigator.share){
+    try{await navigator.share({title:"LOCK IN",text,url});return}catch(e){if(e&&e.name==="AbortError")return}
+  }
+  try{await navigator.clipboard.writeText(text+" "+url);toast("Zkopírováno do schránky")}
+  catch(e){
+    const ta=document.createElement("textarea");ta.value=text+" "+url;document.body.appendChild(ta);ta.select();
+    try{document.execCommand("copy");toast("Zkopírováno do schránky")}catch(_){toast("Kopírování selhalo. Udělej screenshot karty.")}
+    ta.remove();
+  }
+};
+
+/* ---------- stats / leaderboard ---------- */
+function renderStats(){
+  const r=db.runs,p=$("statsPane");
+  if(!r.length){p.innerHTML='<p class="empty">Zatím žádné hry. Dokonči výzvu a uvidíš své statistiky.</p>';}
+  else{
+    const bestRound=Math.min(...r.map(x=>x.best)),bestAvg=Math.min(...r.map(x=>x.avg));
+    const life=avgOf(r.flatMap(x=>x.times)),streak=dailyStreak();
+    const recent=r.slice(-8);const mx=Math.max(...recent.map(x=>x.avg));
+    p.innerHTML=`<div class="grid">
+      <div class="stat"><b>${bestRound} ms</b><span>Nejlepší kolo</span></div>
+      <div class="stat"><b>${bestAvg} ms</b><span>Nejlepší průměr z 5 kol</span></div>
+      <div class="stat"><b>${life} ms</b><span>Celkový průměr</span></div>
+      <div class="stat"><b>${r.length}</b><span>Odehrané výzvy</span></div>
+      <div class="stat"><b>${streak}</b><span>Série denních výzev</span></div>
+      <div class="stat"><b>${r.reduce((a,x)=>a+x.fs,0)}</b><span>Předčasné starty</span></div></div>
+      <div class="stat" style="margin-top:10px"><span>Posledních ${recent.length} průměrů</span>
+      <div class="bars" style="margin-top:22px;height:56px">${recent.map(x=>`<div style="height:${x.avg/mx*100}%;animation:none"><span>${x.avg}</span></div>`).join("")}</div></div>`;
+  }
+}
+function dailyStreak(){let n=0,d=new Date();if(!db.daily[today()])d.setDate(d.getDate()-1);
+  for(;;){const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    if(db.daily[k]){n++;d.setDate(d.getDate()-1)}else break}return n}
+function renderLb(){
+  const top=[...db.runs].sort((a,b)=>a.avg-b.avg).slice(0,10);
+  $("lbPane").innerHTML=`<p style="color:var(--dim);margin-bottom:10px;font-size:14px">Tvoje nejlepší výsledky na tomto zařízení</p>`+
+  (top.length?`<ol class="list">${top.map((x,i)=>`<li><em>${i+1}</em><strong>${x.avg} ms</strong><span>${x.mode==="daily"?"Denní · ":""}${x.date}</span></li>`).join("")}</ol>`:'<p class="empty">Zatím tu nic není.</p>')+
+  `<div class="note" style="margin-top:12px"><b style="color:var(--text)">Globální žebříček: není k dispozici.</b> Tento web nemá server, takže skóre nikdy neopustí tvoje zařízení. Globální žebříček vyžaduje backend, který dokáže výsledky ověřit.</div>`;
+}
+function tab(which){
+  const s=which==="stats";
+  $("tabStats").setAttribute("aria-selected",s);$("tabLb").setAttribute("aria-selected",!s);
+  $("statsPane").hidden=!s;$("lbPane").hidden=s;
+  s?renderStats():renderLb();
+}
+$("tabStats").onclick=()=>tab("stats");$("tabLb").onclick=()=>tab("lb");
+$("statsBtn").onclick=()=>{show("stats");tab("stats")};
+$("lbBtn").onclick=()=>{show("stats");tab("lb")};
+$("statsBack").onclick=goHome;
+
+/* ---------- home / tutorial ---------- */
+function goHome(){
+  show("home");
+  const d=db.daily[today()];
+  $("dailyInfo").textContent=d?`Dnešní nejlepší: ${d} ms. Překonej to.`:"Dnes stejné prodlevy pro všechny";
+}
+$("startBtn").onclick=()=>{beep(440,.06);startRun("normal")};
+$("dailyBtn").onclick=()=>{beep(440,.06);startRun("daily")};
+const tut=$("tut");
+function openTut(){tut.showModal?tut.showModal():tut.setAttribute("open","")}
+$("help").onclick=openTut;
+$("tutOk").onclick=()=>{tut.close?tut.close():tut.removeAttribute("open");db.seen=true;save()};
+
+/* keyboard: Space / Enter anywhere on the game screen */
+document.addEventListener("keydown",e=>{
+  if(!$("game").hidden&&(e.code==="Space"||e.code==="Enter")&&!e.repeat){e.preventDefault();tap()}
+});
+/* never leave a stray timer if the tab is hidden mid-round */
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden&&G&&G.phase==="go"){clearTimeout(G.t);G.phase="between";nextRound()}
+});
+
+goHome();
+if(!db.seen)setTimeout(openTut,350);
+})();
+</script>
+</body>
+</html>
